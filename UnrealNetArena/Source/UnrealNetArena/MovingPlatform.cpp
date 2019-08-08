@@ -27,20 +27,30 @@ void AMovingPlatform::BeginPlay() {
 void AMovingPlatform::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 	
-	if (Role == ROLE_Authority) {															// HasAuthority() does the same thing
-		FVector location = GetActorLocation();
-		float travelLength = (GlobalTargetLocation - GlobalStartLocation).Size();
-		float lengthTravelled = (location - GlobalStartLocation).Size();
+	if (IsActive()) {
+		if (Role == ROLE_Authority) {															// HasAuthority() does the same thing
+			FVector location = GetActorLocation();
+			float travelLength = (GlobalTargetLocation - GlobalStartLocation).Size();
+			float lengthTravelled = (location - GlobalStartLocation).Size();
 
-		// Simulates movement back and forth
-		if (lengthTravelled >= travelLength) {
-			VectorSwap(GlobalStartLocation, GlobalTargetLocation);
+			// Simulates movement back and forth
+			if (lengthTravelled >= travelLength) {
+				VectorSwap(GlobalStartLocation, GlobalTargetLocation);
+			}
+
+			FVector direction = (GlobalTargetLocation - GlobalStartLocation).GetSafeNormal();
+			FVector newLocation = (GetActorLocation() + direction * Speed * DeltaTime);
+			SetActorLocation(newLocation);
 		}
-
-		FVector direction = (GlobalTargetLocation - GlobalStartLocation).GetSafeNormal();
-		FVector newLocation = (GetActorLocation() + direction * Speed * DeltaTime);
-		SetActorLocation(newLocation);
 	}
+}
+
+void AMovingPlatform::AddActiveTrigger() {
+	++ActiveTriggers;
+}
+
+void AMovingPlatform::RemoveActiveTrigger() {
+	ActiveTriggers > 0 ? --ActiveTriggers : ActiveTriggers;
 }
 
 void AMovingPlatform::VectorSwap(FVector &v1, FVector &v2)

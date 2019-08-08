@@ -28,9 +28,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement", meta = (MakeEditWidget = true))
 	FVector TargetLocation;
 
+	void AddActiveTrigger();
+	void RemoveActiveTrigger();
+
 private:
 	FVector GlobalTargetLocation;
 	FVector GlobalStartLocation;
 
+	UPROPERTY(EditAnywhere)
+	int ActiveTriggers = 1;
+
 	void VectorSwap(FVector &v1, FVector &v2);
+
+	bool inline IsActive() { return ActiveTriggers > 0; }
 };
