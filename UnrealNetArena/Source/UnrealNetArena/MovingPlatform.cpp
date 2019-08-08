@@ -14,6 +14,9 @@ AMovingPlatform::AMovingPlatform() {
 void AMovingPlatform::BeginPlay() {
 	Super::BeginPlay();
 
+	GlobalStartLocation = GetActorLocation();
+	GlobalTargetLocation = GetTransform().TransformPosition(TargetLocation);
+
 	// Allowing this object to be replicated
 	if (Role == ROLE_Authority) {
 		SetReplicates(true);
@@ -26,11 +29,24 @@ void AMovingPlatform::Tick(float DeltaTime) {
 	
 	if (Role == ROLE_Authority) {															// HasAuthority() does the same thing
 		FVector location = GetActorLocation();
-		FVector globalTargetLocation = GetTransform().TransformPosition(TargetLocation);	// from local to global space
-		FVector direction = (globalTargetLocation - location).GetSafeNormal();
+		float travelLength = (GlobalTargetLocation - GlobalStartLocation).Size();
+		float lengthTravelled = (location - GlobalStartLocation).Size();
 
-		location += direction * Speed * DeltaTime;
-		SetActorLocation(location);
+		// Simulates movement back and forth
+		if (lengthTravelled >= travelLength) {
+			VectorSwap(GlobalStartLocation, GlobalTargetLocation);
+		}
+
+		FVector direction = (GlobalTargetLocation - GlobalStartLocation).GetSafeNormal();
+		FVector newLocation = (GetActorLocation() + direction * Speed * DeltaTime);
+		SetActorLocation(newLocation);
 	}
+}
+
+void AMovingPlatform::VectorSwap(FVector &v1, FVector &v2)
+{
+	FVector vTemp = v1;
+	v1 = v2;
+	v2 = vTemp;
 }
 
