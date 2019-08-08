@@ -18,7 +18,13 @@ void UArenaNetGameInstance::Host() {
 	UEngine* engine = GetEngine();
 	if (!engine) { return; }
 
+	// Display to user they're hosting a game
 	engine->AddOnScreenDebugMessage(0, 5.f, FColor::Green, TEXT("Hosting Game"));
+
+	UWorld* world = GetWorld();
+	if (!world) { return; }
+	// Boot up a server with the main level, and join it
+	world->ServerTravel("/Game/ThirdPersonBP/Maps/ThirdPersonExampleMap?listen");
 }
 
 void UArenaNetGameInstance::Join(const FString& destination)
