@@ -17,9 +17,14 @@ class UNREALNETARENA_API AMovingPlatform : public AStaticMeshActor
 public:
 
 	AMovingPlatform();
+
+	virtual void BeginPlay() override;
 	
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	float Speed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement", meta = (MakeEditWidget = true))
+	FVector TargetLocation;
 };
