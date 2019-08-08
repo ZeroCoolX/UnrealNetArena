@@ -2,6 +2,7 @@
 
 #include "ArenaNetGameInstance.h"
 #include "Engine/Engine.h"
+#include "GameFramework/PlayerController.h"
 
 UArenaNetGameInstance::UArenaNetGameInstance(const FObjectInitializer &ObjectInitialize)
 {
@@ -33,4 +34,9 @@ void UArenaNetGameInstance::Join(const FString& destination)
 	if (!engine) { return; }
 
 	engine->AddOnScreenDebugMessage(0, 5.f, FColor::Green, FString::Printf(TEXT("Joining %s"), *destination));
+
+	APlayerController* pController = GetFirstLocalPlayerController();
+	if (!pController) { return; }
+	// join a server if one exists
+	pController->ClientTravel("192.168.0.4", ETravelType::TRAVEL_Absolute);
 }
