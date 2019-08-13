@@ -25,39 +25,6 @@ bool UMainMenu::Initialize() {
 	return true;
 }
 
-void UMainMenu::Setup()
-{
-	this->AddToViewport();
-
-	UWorld* world = GetWorld();
-	if (!world) { return; }
-
-	APlayerController* pController = world->GetFirstPlayerController();
-	if (!pController) { return; }
-
-	FInputModeUIOnly inputModeData;
-	inputModeData.SetWidgetToFocus(this->TakeWidget());
-	inputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);		// Allow the mouse to move outside of the game screen
-
-	pController->SetInputMode(inputModeData);
-	pController->bShowMouseCursor = true;
-}
-
-void UMainMenu::Teardown()
-{
-	this->RemoveFromViewport();
-
-	UWorld* world = GetWorld();
-	if (!world) { return; }
-
-	APlayerController* pController = world->GetFirstPlayerController();
-	if (!pController) { return; }
-
-	FInputModeGameOnly inputModeData;	
-	pController->SetInputMode(inputModeData);
-	pController->bShowMouseCursor = false;
-}
-
 void UMainMenu::HostServer()
 {
 	if (!MenuInterface) { return; }

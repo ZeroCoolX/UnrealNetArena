@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Blueprint/UserWidget.h"
+#include "MenuWidget.h"
 #include "MenuInterface.h"
 #include "MainMenu.generated.h"
 
@@ -11,15 +11,9 @@
  * 
  */
 UCLASS()
-class UNREALNETARENA_API UMainMenu : public UUserWidget
+class UNREALNETARENA_API UMainMenu : public UMenuWidget
 {
 	GENERATED_BODY()
-
-public:
-	inline void SetMenuInterface(IMenuInterface* menuInterface) { this->MenuInterface = menuInterface; }
-
-	void Setup();
-	void Teardown();
 
 protected:
 	virtual bool Initialize();
@@ -59,7 +53,5 @@ private:
 	void OpenJoinMenu();
 
 	UFUNCTION()
-	void BackToMainMenu();
-	
-	IMenuInterface* MenuInterface;
+	void BackToMainMenu();	
 };

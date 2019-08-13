@@ -6,6 +6,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Blueprint/UserWidget.h"
 #include "MenuSystem//MainMenu.h"
+#include "MenuSystem//MenuWidget.h"
 #include "PlatformTrigger.h"
 
 UArenaNetGameInstance::UArenaNetGameInstance(const FObjectInitializer &ObjectInitialize)
@@ -13,12 +14,18 @@ UArenaNetGameInstance::UArenaNetGameInstance(const FObjectInitializer &ObjectIni
 	// find and Store the Blueprint class
 	ConstructorHelpers::FClassFinder<UUserWidget> menuBPClass(TEXT("/Game/Arena/UI/MainMenu_WBP"));
 	if (!ensure(menuBPClass.Class)) { 
-		UE_LOG(LogTemp, Error, TEXT("Failure to find BP class"));
+		UE_LOG(LogTemp, Error, TEXT("Failure to find MainMenu_WBP"));
 		return; 
 	}
-	
-	//MainMenu->bIsFocusable = true;
-	MenuClass = menuBPClass.Class;
+		MenuClass = menuBPClass.Class;
+
+	// find and Store the Blueprint class
+	ConstructorHelpers::FClassFinder<UUserWidget> inGameMenuBPClass(TEXT("/Game/Arena/UI/InGameMenu_WBP"));
+	if (!ensure(inGameMenuBPClass.Class)) {
+		UE_LOG(LogTemp, Error, TEXT("Failure to find InGameMenu_WBP"));
+		return;
+	}
+	InGameMenuClass = inGameMenuBPClass.Class;
 }
 
 void UArenaNetGameInstance::Init()
@@ -35,6 +42,16 @@ void UArenaNetGameInstance::LoadMenu()
 	if (!ensure(Menu)) { return; }
 	Menu->Setup();
 	Menu->SetMenuInterface(this);
+}
+
+void UArenaNetGameInstance::InGameLoadMenu()
+{
+	if (!ensure(InGameMenuClass)) { return; }
+
+	UMenuWidget* inGameMenu = CreateWidget<UMenuWidget>(this, InGameMenuClass);
+	if (!ensure(inGameMenu)) { return; }
+	inGameMenu->Setup();
+	inGameMenu->SetMenuInterface(this);
 }
 
 void UArenaNetGameInstance::Host() {
