@@ -24,4 +24,5 @@ class UNREALNETARENA_API IMenuInterface
 public:
 	virtual void Host() = 0;
 	virtual void Join(const FString& destination) = 0;
+	virtual void LoadMainMenu() = 0;
 };

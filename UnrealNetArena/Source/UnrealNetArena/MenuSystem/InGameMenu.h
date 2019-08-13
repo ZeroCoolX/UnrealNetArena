@@ -14,7 +14,20 @@ class UNREALNETARENA_API UInGameMenu : public UMenuWidget
 {
 	GENERATED_BODY()
 	
+public:
+	UPROPERTY(meta = (BindWidget))
+	class UButton* BackBtn;
 	
-	
-	
+	UPROPERTY(meta = (BindWidget))
+	class UButton* LeaveBtn;
+
+protected:
+	virtual bool Initialize();
+
+private:
+	UFUNCTION()
+	void BackToGame();
+
+	UFUNCTION()
+	void BackToMainMenu();
 };

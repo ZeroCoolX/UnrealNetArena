@@ -87,3 +87,11 @@ void UArenaNetGameInstance::Join(const FString& destination)
 	// join a server if one exists
 	pController->ClientTravel(FString::Printf(TEXT("%s:7777"), *destination), ETravelType::TRAVEL_Absolute);
 }
+
+void UArenaNetGameInstance::LoadMainMenu() {
+	APlayerController* pController = GetFirstLocalPlayerController();
+	if (!pController) { return; }
+
+	// Take player back to the menu - disconnecting from the server
+	pController->ClientTravel("/Game/Arena/UI/MainMenu", ETravelType::TRAVEL_Absolute);
+}

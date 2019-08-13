@@ -27,10 +27,12 @@ public:
 	void InGameLoadMenu();
 
 	UFUNCTION(Exec)
-	void Host();
+	virtual void Host() override;
 
 	UFUNCTION(Exec)
-	void Join(const FString& destination);
+	virtual void Join(const FString& destination) override;
+
+	virtual void LoadMainMenu() override;
 
 private:
 	TSubclassOf<class UUserWidget> MenuClass;
