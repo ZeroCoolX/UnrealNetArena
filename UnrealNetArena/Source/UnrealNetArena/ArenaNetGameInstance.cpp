@@ -25,6 +25,17 @@ void UArenaNetGameInstance::Init()
 	UE_LOG(LogTemp, Warning, TEXT("Found BP class %s"), *MenuClass->GetName());
 }
 
+void UArenaNetGameInstance::LoadMenu()
+{
+	if (!ensure(MenuClass)) { return; }
+	
+	UUserWidget* menu = CreateWidget<UUserWidget>(this, MenuClass);
+	if (!ensure(menu)) { return; }
+
+	// Add the widget to the visible viewport
+	menu->AddToViewport();
+}
+
 void UArenaNetGameInstance::Host() {
 	UEngine* engine = GetEngine();
 	if (!engine) { return; }
