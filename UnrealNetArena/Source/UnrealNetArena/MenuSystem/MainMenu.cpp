@@ -2,6 +2,7 @@
 
 #include "MainMenu.h"
 #include "Components/Button.h"
+#include "Components/WidgetSwitcher.h"
 #include "GameFramework/PlayerController.h"
 
 bool UMainMenu::Initialize() {
@@ -11,7 +12,10 @@ bool UMainMenu::Initialize() {
 	HostBtn->OnClicked.AddDynamic(this, &UMainMenu::HostServer);
 
 	if (!ensure(JoinBtn)) { return false; }
-	JoinBtn->OnClicked.AddDynamic(this, &UMainMenu::JoinServer);
+	JoinBtn->OnClicked.AddDynamic(this, &UMainMenu::OpenJoinMenu);
+
+	if (!ensure(BackBtn)) { return false; }
+	BackBtn->OnClicked.AddDynamic(this, &UMainMenu::BackToMainMenu);
 
 	return true;
 }
@@ -46,7 +50,6 @@ void UMainMenu::Teardown()
 
 	FInputModeGameOnly inputModeData;	
 	pController->SetInputMode(inputModeData);
-
 	pController->bShowMouseCursor = false;
 }
 
@@ -61,4 +64,18 @@ void UMainMenu::HostServer()
 void UMainMenu::JoinServer()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Joining Server!"));
+}
+
+void UMainMenu::OpenJoinMenu()
+{
+	if (!ensure(MenuSwitcher)) { return; }else { UE_LOG(LogTemp, Warning, TEXT("MenuSwitcher is nullptr!")); }
+	if (!ensure(JoinMenu)) { return; }else{ UE_LOG(LogTemp, Warning, TEXT("JoinMenu is nullptr!")); }
+	MenuSwitcher->SetActiveWidget(JoinMenu);
+}
+
+void UMainMenu::BackToMainMenu()
+{
+	if (!ensure(MenuSwitcher)) { return; }
+	if (!ensure(MainMenu)) { return; }
+	MenuSwitcher->SetActiveWidget(MainMenu);
 }
