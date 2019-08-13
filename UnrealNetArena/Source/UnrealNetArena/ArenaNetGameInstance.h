@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "MenuSystem/MenuInterface.h"
 #include "ArenaNetGameInstance.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class UNREALNETARENA_API UArenaNetGameInstance : public UGameInstance
+class UNREALNETARENA_API UArenaNetGameInstance : public UGameInstance, public IMenuInterface
 {
 	GENERATED_BODY()
 	
@@ -31,4 +32,5 @@ public:
 private:
 	TSubclassOf<class UUserWidget> MenuClass;
 
+	class UMainMenu* Menu;
 };

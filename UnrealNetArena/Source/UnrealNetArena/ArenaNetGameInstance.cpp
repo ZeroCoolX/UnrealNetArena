@@ -5,6 +5,7 @@
 #include "GameFramework/PlayerController.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Blueprint/UserWidget.h"
+#include "MenuSystem//MainMenu.h"
 #include "PlatformTrigger.h"
 
 UArenaNetGameInstance::UArenaNetGameInstance(const FObjectInitializer &ObjectInitialize)
@@ -30,27 +31,20 @@ void UArenaNetGameInstance::LoadMenu()
 {
 	if (!ensure(MenuClass)) { return; }
 	
-	UUserWidget* menu = CreateWidget<UUserWidget>(this, MenuClass);
-	if (!ensure(menu)) { return; }
-	// Add the widget to the visible viewport
-	menu->AddToViewport();
-
-	// Access the player controller for input capture
-	APlayerController* pController = GetFirstLocalPlayerController();
-	if (!pController) { return; }
-
-	FInputModeUIOnly inputModeData;
-	// Assign which widget to use (our main menu)
-	inputModeData.SetWidgetToFocus(menu->TakeWidget());
-	// Allow the mouse to move outside of the game screen
-	inputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-	pController->SetInputMode(inputModeData);
-
-	// Make the cursor visible
-	pController->bShowMouseCursor = true;
+	Menu = CreateWidget<UMainMenu>(this, MenuClass);
+	if (!ensure(Menu)) { return; }
+	Menu->Setup();
+	Menu->SetMenuInterface(this);
 }
 
 void UArenaNetGameInstance::Host() {
+	if (Menu != nullptr) {
+		Menu->Teardown();
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("Menu was nullptr..."));
+	}
+
 	UEngine* engine = GetEngine();
 	if (!engine) { return; }
 
