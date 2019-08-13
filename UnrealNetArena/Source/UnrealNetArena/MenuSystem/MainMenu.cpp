@@ -22,6 +22,9 @@ bool UMainMenu::Initialize() {
 	if (!ensure(ConnectBtn)) { return false; }
 	ConnectBtn->OnClicked.AddDynamic(this, &UMainMenu::ConnectToServer);
 
+	if (!ensure(QuitBtn)) { return false; }
+	QuitBtn->OnClicked.AddDynamic(this, &UMainMenu::QuitGame);
+
 	return true;
 }
 
@@ -55,4 +58,14 @@ void UMainMenu::BackToMainMenu()
 	if (!ensure(MenuSwitcher)) { return; }
 	if (!ensure(MainMenu)) { return; }
 	MenuSwitcher->SetActiveWidget(MainMenu);
+}
+
+void UMainMenu::QuitGame()
+{
+	UWorld* world = GetWorld();
+	if (!world) { return; }
+
+	APlayerController* pController = world->GetFirstPlayerController();
+	if (!pController) { return; }
+	pController->ConsoleCommand("quit");
 }
