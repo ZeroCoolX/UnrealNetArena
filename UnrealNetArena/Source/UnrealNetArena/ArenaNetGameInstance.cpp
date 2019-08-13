@@ -16,6 +16,7 @@ UArenaNetGameInstance::UArenaNetGameInstance(const FObjectInitializer &ObjectIni
 		return; 
 	}
 	
+	//MainMenu->bIsFocusable = true;
 	MenuClass = menuBPClass.Class;
 }
 
@@ -31,9 +32,22 @@ void UArenaNetGameInstance::LoadMenu()
 	
 	UUserWidget* menu = CreateWidget<UUserWidget>(this, MenuClass);
 	if (!ensure(menu)) { return; }
-
 	// Add the widget to the visible viewport
 	menu->AddToViewport();
+
+	// Access the player controller for input capture
+	APlayerController* pController = GetFirstLocalPlayerController();
+	if (!pController) { return; }
+
+	FInputModeUIOnly inputModeData;
+	// Assign which widget to use (our main menu)
+	inputModeData.SetWidgetToFocus(menu->TakeWidget());
+	// Allow the mouse to move outside of the game screen
+	inputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	pController->SetInputMode(inputModeData);
+
+	// Make the cursor visible
+	pController->bShowMouseCursor = true;
 }
 
 void UArenaNetGameInstance::Host() {
