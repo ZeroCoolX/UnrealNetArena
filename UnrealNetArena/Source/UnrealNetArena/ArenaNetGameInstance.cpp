@@ -41,9 +41,6 @@ void UArenaNetGameInstance::Host() {
 	if (Menu != nullptr) {
 		Menu->Teardown();
 	}
-	else {
-		UE_LOG(LogTemp, Warning, TEXT("Menu was nullptr..."));
-	}
 
 	UEngine* engine = GetEngine();
 	if (!engine) { return; }
@@ -59,6 +56,10 @@ void UArenaNetGameInstance::Host() {
 
 void UArenaNetGameInstance::Join(const FString& destination)
 {
+	if (Menu != nullptr) {
+		Menu->Teardown();
+	}
+
 	UEngine* engine = GetEngine();
 	if (!engine) { return; }
 

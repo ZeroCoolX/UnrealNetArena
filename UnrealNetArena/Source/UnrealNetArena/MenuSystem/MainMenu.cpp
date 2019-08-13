@@ -4,10 +4,12 @@
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
 #include "GameFramework/PlayerController.h"
+#include "Components/EditableTextBox.h"
 
 bool UMainMenu::Initialize() {
 	if (!Super::Initialize()) { return false; }
 
+	// Bind Buttons
 	if (!ensure(HostBtn)) { return false; }
 	HostBtn->OnClicked.AddDynamic(this, &UMainMenu::HostServer);
 
@@ -16,6 +18,9 @@ bool UMainMenu::Initialize() {
 
 	if (!ensure(BackBtn)) { return false; }
 	BackBtn->OnClicked.AddDynamic(this, &UMainMenu::BackToMainMenu);
+
+	if (!ensure(ConnectBtn)) { return false; }
+	ConnectBtn->OnClicked.AddDynamic(this, &UMainMenu::ConnectToServer);
 
 	return true;
 }
@@ -61,9 +66,14 @@ void UMainMenu::HostServer()
 	UE_LOG(LogTemp, Warning, TEXT("Hosting Server!"));
 }
 
-void UMainMenu::JoinServer()
+void UMainMenu::ConnectToServer()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Joining Server!"));
+	if (!MenuInterface) { return; }
+	if (!IpInputBox) { return; }
+
+	const FString& destination {IpInputBox->GetText().ToString()};
+	MenuInterface->Join(destination);
+	UE_LOG(LogTemp, Warning, TEXT("Connecting to Server at %s"), *destination);
 }
 
 void UMainMenu::OpenJoinMenu()
