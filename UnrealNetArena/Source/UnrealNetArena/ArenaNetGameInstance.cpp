@@ -5,10 +5,13 @@
 #include "GameFramework/PlayerController.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Blueprint/UserWidget.h"
-#include "MenuSystem//MainMenu.h"
-#include "MenuSystem//MenuWidget.h"
+#include "MenuSystem/MainMenu.h"
+#include "MenuSystem/MenuWidget.h"
 #include "PlatformTrigger.h"
-#include "OnlineSubsystem.h"
+#include "OnlineSessionSettings.h"
+#include "OnlineSessionInterface.h"
+
+const static FName SESSION_NAME = TEXT("Arena Net Game");
 
 UArenaNetGameInstance::UArenaNetGameInstance(const FObjectInitializer &ObjectInitialize)
 {
@@ -32,10 +35,16 @@ UArenaNetGameInstance::UArenaNetGameInstance(const FObjectInitializer &ObjectIni
 void UArenaNetGameInstance::Init()
 {
 	Super::Init();
-	IOnlineSubsystem* onlineSub = IOnlineSubsystem::Get();
 
+	// Setup online session interface for hosting
+	IOnlineSubsystem* onlineSub = IOnlineSubsystem::Get();
 	if (onlineSub) {
 		UE_LOG(LogTemp, Warning, TEXT("Found subsystem %s"), *onlineSub->GetSubsystemName().ToString());
+		SessionInterface = onlineSub->GetSessionInterface();
+		if (SessionInterface.IsValid()) {
+			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UArenaNetGameInstance::OnCreateSessionComplete);
+			SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UArenaNetGameInstance::OnDestroySessionComplete);
+		}
 	}
 	else {
 		UE_LOG(LogTemp, Warning, TEXT("Unable to find online subsystem"));
@@ -63,6 +72,26 @@ void UArenaNetGameInstance::InGameLoadMenu()
 }
 
 void UArenaNetGameInstance::Host() {
+	if (SessionInterface.IsValid()) {
+		auto existingSession = SessionInterface->GetNamedSession(SESSION_NAME);
+		if (existingSession) {
+			// Destroy the existing session because someone wants to create a new one
+			SessionInterface->DestroySession(SESSION_NAME);
+		}
+		else {
+			CreateSession();
+		}
+	}
+}
+
+void UArenaNetGameInstance::OnCreateSessionComplete(FName sessionName, bool success)
+{
+	// Indicates if the session could be created - if one already exists this will return false
+	if (!success) {
+		return;
+		UE_LOG(LogTemp, Error, TEXT("Unable to create subsystem session"));
+	}
+
 	if (Menu != nullptr) {
 		Menu->Teardown();
 	}
@@ -77,6 +106,22 @@ void UArenaNetGameInstance::Host() {
 	if (!world) { return; }
 	// Boot up a server with the main level, and join it
 	world->ServerTravel("/Game/ThirdPersonBP/Maps/ThirdPersonExampleMap?listen");
+}
+
+void UArenaNetGameInstance::OnDestroySessionComplete(FName sessionName, bool success)
+{
+	// Ensures that on destruction a new one is created
+	if (success) {
+		CreateSession();
+	}
+}
+
+void UArenaNetGameInstance::CreateSession()
+{
+	if (SessionInterface.IsValid()) {
+		FOnlineSessionSettings sessionSettings;
+		SessionInterface->CreateSession(0, SESSION_NAME, sessionSettings);
+	}
 }
 
 void UArenaNetGameInstance::Join(const FString& destination)
@@ -103,3 +148,4 @@ void UArenaNetGameInstance::LoadMainMenu() {
 	// Take player back to the menu - disconnecting from the server
 	pController->ClientTravel("/Game/Arena/UI/MainMenu", ETravelType::TRAVEL_Absolute);
 }
+

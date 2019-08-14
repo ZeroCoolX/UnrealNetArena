@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "OnlineSubsystem.h"
 #include "MenuSystem/MenuInterface.h"
 #include "ArenaNetGameInstance.generated.h"
 
@@ -39,4 +40,11 @@ private:
 	class UMainMenu* Menu;
 
 	TSubclassOf<class UUserWidget> InGameMenuClass;
+
+	IOnlineSessionPtr SessionInterface;
+
+	void OnCreateSessionComplete(FName sessionName, bool success);
+	void OnDestroySessionComplete(FName sessionName, bool success);
+
+	void CreateSession();
 };
