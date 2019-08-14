@@ -8,6 +8,7 @@
 #include "MenuSystem//MainMenu.h"
 #include "MenuSystem//MenuWidget.h"
 #include "PlatformTrigger.h"
+#include "OnlineSubsystem.h"
 
 UArenaNetGameInstance::UArenaNetGameInstance(const FObjectInitializer &ObjectInitialize)
 {
@@ -31,10 +32,17 @@ UArenaNetGameInstance::UArenaNetGameInstance(const FObjectInitializer &ObjectIni
 void UArenaNetGameInstance::Init()
 {
 	Super::Init();
-	UE_LOG(LogTemp, Warning, TEXT("Found BP class %s"), *MenuClass->GetName());
+	IOnlineSubsystem* onlineSub = IOnlineSubsystem::Get();
+
+	if (onlineSub) {
+		UE_LOG(LogTemp, Warning, TEXT("Found subsystem %s"), *onlineSub->GetSubsystemName().ToString());
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("Unable to find online subsystem"));
+	}
 }
 
-void UArenaNetGameInstance::LoadMenu()
+void UArenaNetGameInstance::LoadMenuWidget()
 {
 	if (!ensure(MenuClass)) { return; }
 	
