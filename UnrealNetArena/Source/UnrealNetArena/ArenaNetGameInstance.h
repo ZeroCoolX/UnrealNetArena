@@ -42,9 +42,11 @@ private:
 	TSubclassOf<class UUserWidget> InGameMenuClass;
 
 	IOnlineSessionPtr SessionInterface;
+	TSharedPtr<class FOnlineSessionSearch> SessionSearch;
 
 	void OnCreateSessionComplete(FName sessionName, bool success);
 	void OnDestroySessionComplete(FName sessionName, bool success);
+	void OnFindSessionsComplete(bool success);
 
 	void CreateSession();
 };

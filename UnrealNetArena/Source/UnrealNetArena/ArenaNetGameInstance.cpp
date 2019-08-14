@@ -44,6 +44,17 @@ void UArenaNetGameInstance::Init()
 		if (SessionInterface.IsValid()) {
 			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UArenaNetGameInstance::OnCreateSessionComplete);
 			SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UArenaNetGameInstance::OnDestroySessionComplete);
+			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UArenaNetGameInstance::OnFindSessionsComplete);
+
+			// TODO: This is for testing only - remove asap
+			SessionSearch = MakeShareable(new FOnlineSessionSearch());
+			if (SessionSearch.IsValid()){
+				SessionSearch->bIsLanQuery = true;
+
+				UE_LOG(LogTemp, Warning, TEXT("Starting session search...."));
+				SessionInterface->FindSessions(0, 
+					SessionSearch.ToSharedRef()); // used to store what sessions were found
+			}
 		}
 	}
 	else {
@@ -116,10 +127,23 @@ void UArenaNetGameInstance::OnDestroySessionComplete(FName sessionName, bool suc
 	}
 }
 
+void UArenaNetGameInstance::OnFindSessionsComplete(bool success)
+{
+	if (success && SessionSearch.IsValid()) {
+		UE_LOG(LogTemp, Warning, TEXT("Finished finding sessions"));
+		for (const FOnlineSessionSearchResult& sRes : SessionSearch->SearchResults) {
+			UE_LOG(LogTemp, Warning, TEXT("Found Session [%s], %dms"), *sRes.GetSessionIdStr(), sRes.PingInMs);
+		}
+	}
+}
+
 void UArenaNetGameInstance::CreateSession()
 {
 	if (SessionInterface.IsValid()) {
 		FOnlineSessionSettings sessionSettings;
+		sessionSettings.bIsLANMatch = true;
+		sessionSettings.NumPublicConnections = 2;
+		sessionSettings.bShouldAdvertise = true;	// Makes it visible to .FindSessions()
 		SessionInterface->CreateSession(0, SESSION_NAME, sessionSettings);
 	}
 }
