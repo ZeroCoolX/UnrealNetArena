@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include "OnlineSubsystem.h"
+#include "OnlineSessionInterface.h"
 #include "MenuSystem/MenuInterface.h"
 #include "ArenaNetGameInstance.generated.h"
 
@@ -31,7 +32,7 @@ public:
 	virtual void Host() override;
 
 	UFUNCTION(Exec)
-	virtual void Join(const FString& destination) override;
+	virtual void Join(uint32 serverIndex) override;
 
 	virtual void LoadMainMenu() override;
 
@@ -49,6 +50,7 @@ private:
 	void OnCreateSessionComplete(FName sessionName, bool success);
 	void OnDestroySessionComplete(FName sessionName, bool success);
 	void OnFindSessionsComplete(bool success);
+	void OnJoinSessionComplete(FName sessionName, EOnJoinSessionCompleteResult::Type joinResult);
 
 	void CreateSession();
 };

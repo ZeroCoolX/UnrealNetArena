@@ -9,7 +9,6 @@
 #include "MenuSystem/MenuWidget.h"
 #include "PlatformTrigger.h"
 #include "OnlineSessionSettings.h"
-#include "OnlineSessionInterface.h"
 
 const static FName SESSION_NAME = TEXT("Arena Net Game");
 
@@ -40,11 +39,14 @@ void UArenaNetGameInstance::Init()
 	IOnlineSubsystem* onlineSub = IOnlineSubsystem::Get();
 	if (onlineSub) {
 		UE_LOG(LogTemp, Warning, TEXT("Found subsystem %s"), *onlineSub->GetSubsystemName().ToString());
+
+		// Hook up event delegates
 		SessionInterface = onlineSub->GetSessionInterface();
 		if (SessionInterface.IsValid()) {
 			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UArenaNetGameInstance::OnCreateSessionComplete);
 			SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UArenaNetGameInstance::OnDestroySessionComplete);
 			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UArenaNetGameInstance::OnFindSessionsComplete);
+			SessionInterface->OnJoinSessionCompleteDelegates.AddUObject(this, &UArenaNetGameInstance::OnJoinSessionComplete);
 		}
 	}
 	else {
@@ -85,6 +87,48 @@ void UArenaNetGameInstance::Host() {
 	}
 }
 
+void UArenaNetGameInstance::RefreshServerList()
+{
+	SessionSearch = MakeShareable(new FOnlineSessionSearch());
+	if (SessionSearch.IsValid()) {
+		SessionSearch->bIsLanQuery = true;
+
+		UE_LOG(LogTemp, Warning, TEXT("Starting session search...."));
+		SessionInterface->FindSessions(0,SessionSearch.ToSharedRef()); // used to store what sessions were found
+	}
+}
+
+void UArenaNetGameInstance::CreateSession()
+{
+	if (SessionInterface.IsValid()) {
+		FOnlineSessionSettings sessionSettings;
+		sessionSettings.bIsLANMatch = true;
+		sessionSettings.NumPublicConnections = 2;
+		sessionSettings.bShouldAdvertise = true;	// Makes it visible to .FindSessions()
+		SessionInterface->CreateSession(0, SESSION_NAME, sessionSettings);
+	}
+}
+
+void UArenaNetGameInstance::Join(uint32 serverIndex)
+{
+	if (!SessionInterface.IsValid() || !SessionSearch.IsValid()) { return; }
+
+	if (Menu != nullptr) {
+		Menu->Teardown();
+	}
+
+	SessionInterface->JoinSession(0, SESSION_NAME, SessionSearch->SearchResults[serverIndex]);
+}
+
+void UArenaNetGameInstance::LoadMainMenu() {
+	APlayerController* pController = GetFirstLocalPlayerController();
+	if (!pController) { return; }
+
+	// Take player back to the menu - disconnecting from the server
+	pController->ClientTravel("/Game/Arena/UI/MainMenu", ETravelType::TRAVEL_Absolute);
+}
+
+/* Event delegates */
 void UArenaNetGameInstance::OnCreateSessionComplete(FName sessionName, bool success)
 {
 	// Indicates if the session could be created - if one already exists this will return false
@@ -131,51 +175,24 @@ void UArenaNetGameInstance::OnFindSessionsComplete(bool success)
 	}
 }
 
-void UArenaNetGameInstance::RefreshServerList()
+void UArenaNetGameInstance::OnJoinSessionComplete(FName sessionName, EOnJoinSessionCompleteResult::Type joinResult)
 {
-	SessionSearch = MakeShareable(new FOnlineSessionSearch());
-	if (SessionSearch.IsValid()) {
-		SessionSearch->bIsLanQuery = true;
+	if (!SessionInterface.IsValid()) { return; }
 
-		UE_LOG(LogTemp, Warning, TEXT("Starting session search...."));
-		SessionInterface->FindSessions(0,SessionSearch.ToSharedRef()); // used to store what sessions were found
-	}
-}
-
-void UArenaNetGameInstance::CreateSession()
-{
-	if (SessionInterface.IsValid()) {
-		FOnlineSessionSettings sessionSettings;
-		sessionSettings.bIsLANMatch = true;
-		sessionSettings.NumPublicConnections = 2;
-		sessionSettings.bShouldAdvertise = true;	// Makes it visible to .FindSessions()
-		SessionInterface->CreateSession(0, SESSION_NAME, sessionSettings);
-	}
-}
-
-void UArenaNetGameInstance::Join(const FString& destination)
-{
-	if (Menu != nullptr) {
-		Menu->SetServerList({"Sierra_117", "Fontaine_42"});
-		//Menu->Teardown();
+	FString destination;
+	if (!SessionInterface->GetResolvedConnectString(SESSION_NAME, destination)) {
+		UE_LOG(LogTemp, Error, TEXT("Could not get connection string from session"));
+		return;
 	}
 
-	//UEngine* engine = GetEngine();
-	//if (!engine) { return; }
+	UEngine* engine = GetEngine();
+	if (!engine) { return; }
 
-	//engine->AddOnScreenDebugMessage(0, 5.f, FColor::Green, FString::Printf(TEXT("Joining %s:7777"), *destination));
+	engine->AddOnScreenDebugMessage(0, 5.f, FColor::Green, FString::Printf(TEXT("Joining %s:7777"), *destination));
 
-	//APlayerController* pController = GetFirstLocalPlayerController();
-	//if (!pController) { return; }
-	//// join a server if one exists
-	//pController->ClientTravel(FString::Printf(TEXT("%s:7777"), *destination), ETravelType::TRAVEL_Absolute);
-}
-
-void UArenaNetGameInstance::LoadMainMenu() {
 	APlayerController* pController = GetFirstLocalPlayerController();
 	if (!pController) { return; }
-
-	// Take player back to the menu - disconnecting from the server
-	pController->ClientTravel("/Game/Arena/UI/MainMenu", ETravelType::TRAVEL_Absolute);
+	// join a server if one exists
+	pController->ClientTravel(FString::Printf(TEXT("%s:7777"), *destination), ETravelType::TRAVEL_Absolute);
 }
 

@@ -74,14 +74,12 @@ void UMainMenu::SetServerList(TArray<FString> serverNames)
 
 void UMainMenu::ConnectToServer()
 {
-	if (SelectedServerIndex.IsSet()) {
+	if (SelectedServerIndex.IsSet() && MenuInterface) {
 		UE_LOG(LogTemp, Warning, TEXT("Selected index is %d"), SelectedServerIndex.GetValue());
+		MenuInterface->Join(SelectedServerIndex.GetValue());
 	}else{
 		UE_LOG(LogTemp, Warning, TEXT("Selected index not set...Don't do anything"));
 	}
-	// TODO: Temporary 
-	if (!MenuInterface) { return; }
-	MenuInterface->Join("");
 }
 
 void UMainMenu::OpenServersMenu()
