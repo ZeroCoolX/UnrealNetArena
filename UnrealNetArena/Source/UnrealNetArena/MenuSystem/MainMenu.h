@@ -15,15 +15,24 @@ class UNREALNETARENA_API UMainMenu : public UMenuWidget
 {
 	GENERATED_BODY()
 
+public:
+	UMainMenu(const FObjectInitializer &ObjectInitialize);
+
+	void SetServerList(TArray<FString> serverNames);
+
+	inline void SelectServerIndex(uint32 sIndex) { SelectedServerIndex = sIndex; }
+
 protected:
 	virtual bool Initialize();
 
 private:
+	TSubclassOf<class UUserWidget> ServerRowClass;
+
 	UPROPERTY(meta = (BindWidget))
 	class UButton* HostBtn;
 
 	UPROPERTY(meta = (BindWidget))
-	class UButton* JoinBtn;
+	class UButton* ServersBtn;
 
 	UPROPERTY(meta = (BindWidget))
 	class UButton* QuitBtn;
@@ -35,7 +44,7 @@ private:
 	class UButton* BackBtn;
 
 	UPROPERTY(meta = (BindWidget))
-	class UEditableTextBox* IpInputBox;
+	class UPanelWidget* ServerList;
 
 	UPROPERTY(meta = (BindWidget))
 	class UWidgetSwitcher* MenuSwitcher;
@@ -53,11 +62,13 @@ private:
 	void ConnectToServer();
 
 	UFUNCTION()
-	void OpenJoinMenu();
+	void OpenServersMenu();
 
 	UFUNCTION()
 	void BackToMainMenu();	
 
 	UFUNCTION()
 	void QuitGame();
+
+	TOptional<uint32> SelectedServerIndex;
 };

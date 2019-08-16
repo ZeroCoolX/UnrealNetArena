@@ -3,8 +3,22 @@
 #include "MainMenu.h"
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
+#include "UObject/ConstructorHelpers.h"
 #include "GameFramework/PlayerController.h"
 #include "Components/EditableTextBox.h"
+#include "Components/TextBlock.h"
+#include "ServerRow.h"
+
+
+UMainMenu::UMainMenu(const FObjectInitializer &ObjectInitialize) {
+	// Find the ServerRow blueprint
+	ConstructorHelpers::FClassFinder<UUserWidget> serverRowBPClass(TEXT("/Game/Arena/UI/ServerRow_WBP"));
+	if (!ensure(serverRowBPClass.Class)) {
+		UE_LOG(LogTemp, Error, TEXT("Failure to find ServerRow_WBP"));
+		return;
+	}
+	ServerRowClass = serverRowBPClass.Class;
+}
 
 bool UMainMenu::Initialize() {
 	if (!Super::Initialize()) { return false; }
@@ -13,8 +27,8 @@ bool UMainMenu::Initialize() {
 	if (!ensure(HostBtn)) { return false; }
 	HostBtn->OnClicked.AddDynamic(this, &UMainMenu::HostServer);
 
-	if (!ensure(JoinBtn)) { return false; }
-	JoinBtn->OnClicked.AddDynamic(this, &UMainMenu::OpenJoinMenu);
+	if (!ensure(ServersBtn)) { return false; }
+	ServersBtn->OnClicked.AddDynamic(this, &UMainMenu::OpenServersMenu);
 
 	if (!ensure(BackBtn)) { return false; }
 	BackBtn->OnClicked.AddDynamic(this, &UMainMenu::BackToMainMenu);
@@ -36,21 +50,50 @@ void UMainMenu::HostServer()
 	UE_LOG(LogTemp, Warning, TEXT("Hosting Server!"));
 }
 
-void UMainMenu::ConnectToServer()
+void UMainMenu::SetServerList(TArray<FString> serverNames)
 {
-	if (!MenuInterface) { return; }
-	if (!IpInputBox) { return; }
+	UWorld* world = GetWorld();
+	if (!ensure(world)) { return; }
 
-	const FString& destination {IpInputBox->GetText().ToString()};
-	MenuInterface->Join(destination);
-	UE_LOG(LogTemp, Warning, TEXT("Connecting to Server at %s"), *destination);
+	// Always clear to refresh
+	ServerList->ClearChildren();
+
+	uint32 i = 0;
+	for (const FString& name : serverNames) {
+		// Create a new widget in the world
+		auto row = CreateWidget<UServerRow>(world, ServerRowClass);
+		if (!ensure(row)) { return; }
+
+		row->ServerName->SetText(FText::FromString(name));
+		row->Setup(this, i++);
+
+		// Add it to the list 
+		ServerList->AddChild(row);
+	}
 }
 
-void UMainMenu::OpenJoinMenu()
+void UMainMenu::ConnectToServer()
+{
+	if (SelectedServerIndex.IsSet()) {
+		UE_LOG(LogTemp, Warning, TEXT("Selected index is %d"), SelectedServerIndex.GetValue());
+	}else{
+		UE_LOG(LogTemp, Warning, TEXT("Selected index not set...Don't do anything"));
+	}
+	// TODO: Temporary 
+	if (!MenuInterface) { return; }
+	MenuInterface->Join("");
+}
+
+void UMainMenu::OpenServersMenu()
 {
 	if (!ensure(MenuSwitcher)) { return; }else { UE_LOG(LogTemp, Warning, TEXT("MenuSwitcher is nullptr!")); }
 	if (!ensure(JoinMenu)) { return; }else{ UE_LOG(LogTemp, Warning, TEXT("JoinMenu is nullptr!")); }
 	MenuSwitcher->SetActiveWidget(JoinMenu);
+
+	// Refresh the servers for anyone going into the server list
+	if (ensure(MenuInterface)) {
+		MenuInterface->RefreshServerList();
+	}
 }
 
 void UMainMenu::BackToMainMenu()

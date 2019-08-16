@@ -21,7 +21,7 @@ UArenaNetGameInstance::UArenaNetGameInstance(const FObjectInitializer &ObjectIni
 		UE_LOG(LogTemp, Error, TEXT("Failure to find MainMenu_WBP"));
 		return; 
 	}
-		MenuClass = menuBPClass.Class;
+	MenuClass = menuBPClass.Class;
 
 	// find and Store the Blueprint class
 	ConstructorHelpers::FClassFinder<UUserWidget> inGameMenuBPClass(TEXT("/Game/Arena/UI/InGameMenu_WBP"));
@@ -45,16 +45,6 @@ void UArenaNetGameInstance::Init()
 			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UArenaNetGameInstance::OnCreateSessionComplete);
 			SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UArenaNetGameInstance::OnDestroySessionComplete);
 			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UArenaNetGameInstance::OnFindSessionsComplete);
-
-			// TODO: This is for testing only - remove asap
-			SessionSearch = MakeShareable(new FOnlineSessionSearch());
-			if (SessionSearch.IsValid()){
-				SessionSearch->bIsLanQuery = true;
-
-				UE_LOG(LogTemp, Warning, TEXT("Starting session search...."));
-				SessionInterface->FindSessions(0, 
-					SessionSearch.ToSharedRef()); // used to store what sessions were found
-			}
 		}
 	}
 	else {
@@ -129,11 +119,26 @@ void UArenaNetGameInstance::OnDestroySessionComplete(FName sessionName, bool suc
 
 void UArenaNetGameInstance::OnFindSessionsComplete(bool success)
 {
-	if (success && SessionSearch.IsValid()) {
-		UE_LOG(LogTemp, Warning, TEXT("Finished finding sessions"));
+	if (success && SessionSearch.IsValid() && Menu != nullptr) {
+		TArray<FString> serverNames;
+		// Collect all the sessions adding them to the list
 		for (const FOnlineSessionSearchResult& sRes : SessionSearch->SearchResults) {
 			UE_LOG(LogTemp, Warning, TEXT("Found Session [%s], %dms"), *sRes.GetSessionIdStr(), sRes.PingInMs);
+			serverNames.Add(*sRes.GetSessionIdStr());
 		}
+		// Store the list to the Server Menu
+		Menu->SetServerList(serverNames);
+	}
+}
+
+void UArenaNetGameInstance::RefreshServerList()
+{
+	SessionSearch = MakeShareable(new FOnlineSessionSearch());
+	if (SessionSearch.IsValid()) {
+		SessionSearch->bIsLanQuery = true;
+
+		UE_LOG(LogTemp, Warning, TEXT("Starting session search...."));
+		SessionInterface->FindSessions(0,SessionSearch.ToSharedRef()); // used to store what sessions were found
 	}
 }
 
@@ -151,18 +156,19 @@ void UArenaNetGameInstance::CreateSession()
 void UArenaNetGameInstance::Join(const FString& destination)
 {
 	if (Menu != nullptr) {
-		Menu->Teardown();
+		Menu->SetServerList({"Sierra_117", "Fontaine_42"});
+		//Menu->Teardown();
 	}
 
-	UEngine* engine = GetEngine();
-	if (!engine) { return; }
+	//UEngine* engine = GetEngine();
+	//if (!engine) { return; }
 
-	engine->AddOnScreenDebugMessage(0, 5.f, FColor::Green, FString::Printf(TEXT("Joining %s:7777"), *destination));
+	//engine->AddOnScreenDebugMessage(0, 5.f, FColor::Green, FString::Printf(TEXT("Joining %s:7777"), *destination));
 
-	APlayerController* pController = GetFirstLocalPlayerController();
-	if (!pController) { return; }
-	// join a server if one exists
-	pController->ClientTravel(FString::Printf(TEXT("%s:7777"), *destination), ETravelType::TRAVEL_Absolute);
+	//APlayerController* pController = GetFirstLocalPlayerController();
+	//if (!pController) { return; }
+	//// join a server if one exists
+	//pController->ClientTravel(FString::Printf(TEXT("%s:7777"), *destination), ETravelType::TRAVEL_Absolute);
 }
 
 void UArenaNetGameInstance::LoadMainMenu() {
