@@ -91,7 +91,9 @@ void UArenaNetGameInstance::RefreshServerList()
 {
 	SessionSearch = MakeShareable(new FOnlineSessionSearch());
 	if (SessionSearch.IsValid()) {
-		SessionSearch->bIsLanQuery = true;
+		//SessionSearch->bIsLanQuery = true;
+		SessionSearch->MaxSearchResults = 100;	// Default is 1 so probability that is yours is low (because we're sharing the app id)
+		SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
 
 		UE_LOG(LogTemp, Warning, TEXT("Starting session search...."));
 		SessionInterface->FindSessions(0,SessionSearch.ToSharedRef()); // used to store what sessions were found
@@ -102,9 +104,10 @@ void UArenaNetGameInstance::CreateSession()
 {
 	if (SessionInterface.IsValid()) {
 		FOnlineSessionSettings sessionSettings;
-		sessionSettings.bIsLANMatch = true;
+		sessionSettings.bIsLANMatch = false;
 		sessionSettings.NumPublicConnections = 2;
 		sessionSettings.bShouldAdvertise = true;	// Makes it visible to .FindSessions()
+		sessionSettings.bUsesPresence = true;		// enables this on the server which tells steam to use lobbies instead of dedicated servers
 		SessionInterface->CreateSession(0, SESSION_NAME, sessionSettings);
 	}
 }
