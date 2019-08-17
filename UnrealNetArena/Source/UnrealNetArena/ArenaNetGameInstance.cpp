@@ -158,7 +158,7 @@ void UArenaNetGameInstance::OnCreateSessionComplete(FName sessionName, bool succ
 	UWorld* world = GetWorld();
 	if (!world) { return; }
 	// Boot up a server with the main level, and join it
-	world->ServerTravel("/Game/ThirdPersonBP/Maps/ThirdPersonExampleMap?listen");
+	world->ServerTravel("/Game/Arena/Maps/Lobby?listen");
 }
 
 void UArenaNetGameInstance::OnDestroySessionComplete(FName sessionName, bool success)
