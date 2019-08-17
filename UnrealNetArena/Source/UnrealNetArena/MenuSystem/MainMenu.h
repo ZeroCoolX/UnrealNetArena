@@ -7,6 +7,16 @@
 #include "MenuInterface.h"
 #include "MainMenu.generated.h"
 
+USTRUCT()
+struct FServerData {
+	GENERATED_BODY()
+
+	FString Name;
+	uint16 CurrentPlayers;
+	uint16 MaxPlayerSize;
+	FString HostUsername;
+};
+
 /**
  * 
  */
@@ -18,7 +28,7 @@ class UNREALNETARENA_API UMainMenu : public UMenuWidget
 public:
 	UMainMenu(const FObjectInitializer &ObjectInitialize);
 
-	void SetServerList(TArray<FString> serverNames);
+	void SetServerList(TArray<FServerData> servers);
 
 	void SelectServerIndex(uint32 sIndex);
 

@@ -50,7 +50,7 @@ void UMainMenu::HostServer()
 	UE_LOG(LogTemp, Warning, TEXT("Hosting Server!"));
 }
 
-void UMainMenu::SetServerList(TArray<FString> serverNames)
+void UMainMenu::SetServerList(TArray<FServerData> servers)
 {
 	UWorld* world = GetWorld();
 	if (!ensure(world)) { return; }
@@ -59,12 +59,24 @@ void UMainMenu::SetServerList(TArray<FString> serverNames)
 	ServerList->ClearChildren();
 
 	uint32 i = 0;
-	for (const FString& name : serverNames) {
+	for (const FServerData& srvr : servers) {
 		// Create a new widget in the world
 		auto row = CreateWidget<UServerRow>(world, ServerRowClass);
 		if (!ensure(row)) { return; }
 
-		row->ServerName->SetText(FText::FromString(name));
+		// TODO: move into either struct or new method
+		FString trimmedName = srvr.Name.Left(16);
+
+		FString trimmedHostUsername = srvr.HostUsername;
+		int32 charIndex = 0;
+		if (srvr.HostUsername.FindChar('-', charIndex)) {
+			trimmedHostUsername = srvr.HostUsername.Left(charIndex);
+		}
+
+		row->ServerName->SetText(FText::FromString(FString::Printf(TEXT("%s"), *trimmedName)));
+		row->HostUsername->SetText(FText::FromString(FString::Printf(TEXT("%s"), *trimmedHostUsername)));
+		row->ConnectedPlayerFraction->SetText(FText::FromString(FString::Printf(TEXT("%d/%d"), srvr.CurrentPlayers, srvr.MaxPlayerSize)));
+
 		row->Setup(this, i++);
 
 		// Add it to the list 

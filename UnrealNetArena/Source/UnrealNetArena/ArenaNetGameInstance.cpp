@@ -104,7 +104,8 @@ void UArenaNetGameInstance::CreateSession()
 {
 	if (SessionInterface.IsValid()) {
 		FOnlineSessionSettings sessionSettings;
-		sessionSettings.bIsLANMatch = false;
+		// NULL = local play, otherwise steam so no LAN
+		sessionSettings.bIsLANMatch = IOnlineSubsystem::Get()->GetSubsystemName() == "NULL";
 		sessionSettings.NumPublicConnections = 2;
 		sessionSettings.bShouldAdvertise = true;	// Makes it visible to .FindSessions()
 		sessionSettings.bUsesPresence = true;		// enables this on the server which tells steam to use lobbies instead of dedicated servers
@@ -167,18 +168,23 @@ void UArenaNetGameInstance::OnDestroySessionComplete(FName sessionName, bool suc
 void UArenaNetGameInstance::OnFindSessionsComplete(bool success)
 {
 	if (success && SessionSearch.IsValid() && Menu != nullptr) {
-		TArray<FString> serverNames;
+		TArray<FServerData> servers;
 		// Collect all the sessions adding them to the list
 		for (const FOnlineSessionSearchResult& sRes : SessionSearch->SearchResults) {
 			UE_LOG(LogTemp, Warning, TEXT("Found Session [%s], %dms"), *sRes.GetSessionIdStr(), sRes.PingInMs);
-			serverNames.Add(*sRes.GetSessionIdStr());
+
+			// Extract server data
+			FServerData sData;
+			sData.Name = sRes.GetSessionIdStr();
+			sData.MaxPlayerSize = sRes.Session.SessionSettings.NumPublicConnections;
+			sData.CurrentPlayers = sData.MaxPlayerSize - sRes.Session.NumOpenPublicConnections;
+			sData.HostUsername = sRes.Session.OwningUserName;
+
+			servers.Add(sData);
 		}
-		serverNames.Add("Fontaine_Futuristics");
-		serverNames.Add("Seirra-117");
-		serverNames.Add("Don't Panic");
 
 		// Store the list to the Server Menu
-		Menu->SetServerList(serverNames);
+		Menu->SetServerList(servers);
 	}
 }
 
