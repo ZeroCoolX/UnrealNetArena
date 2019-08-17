@@ -10,7 +10,7 @@
 #include "PlatformTrigger.h"
 #include "OnlineSessionSettings.h"
 
-const static FName SESSION_NAME = TEXT("Arena Net Game");
+const static FName SESSION_NAME = TEXT("Game");
 const static FName SERVER_NAME_KEY = TEXT("ServerName");
 
 UArenaNetGameInstance::UArenaNetGameInstance(const FObjectInitializer &ObjectInitialize)
@@ -75,6 +75,13 @@ void UArenaNetGameInstance::InGameLoadMenu()
 	inGameMenu->SetMenuInterface(this);
 }
 
+void UArenaNetGameInstance::StartSession()
+{
+	if (SessionInterface.IsValid()) {
+		SessionInterface->StartSession(SESSION_NAME);
+	}
+}
+
 void UArenaNetGameInstance::Host(FString serverName) {
 	DesiredServerName = serverName;
 
@@ -109,7 +116,7 @@ void UArenaNetGameInstance::CreateSession()
 		FOnlineSessionSettings sessionSettings;
 		// NULL = local play, otherwise steam so no LAN
 		sessionSettings.bIsLANMatch = IOnlineSubsystem::Get()->GetSubsystemName() == "NULL";
-		sessionSettings.NumPublicConnections = 2;
+		sessionSettings.NumPublicConnections = 5;
 		sessionSettings.bShouldAdvertise = true;	// Makes it visible to .FindSessions()
 		sessionSettings.bUsesPresence = true;		// enables this on the server which tells steam to use lobbies instead of dedicated servers
 		sessionSettings.Set(SERVER_NAME_KEY, DesiredServerName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);	// Allows us to send custom data on the settings - advertised via steam and LAN

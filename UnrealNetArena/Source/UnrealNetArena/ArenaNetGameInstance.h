@@ -28,6 +28,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void InGameLoadMenu();
 
+	void StartSession();
+
 	UFUNCTION(Exec)
 	virtual void Host(FString serverName) override;
 
