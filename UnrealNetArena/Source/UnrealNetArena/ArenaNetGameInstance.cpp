@@ -173,6 +173,10 @@ void UArenaNetGameInstance::OnFindSessionsComplete(bool success)
 			UE_LOG(LogTemp, Warning, TEXT("Found Session [%s], %dms"), *sRes.GetSessionIdStr(), sRes.PingInMs);
 			serverNames.Add(*sRes.GetSessionIdStr());
 		}
+		serverNames.Add("Fontaine_Futuristics");
+		serverNames.Add("Seirra-117");
+		serverNames.Add("Don't Panic");
+
 		// Store the list to the Server Menu
 		Menu->SetServerList(serverNames);
 	}

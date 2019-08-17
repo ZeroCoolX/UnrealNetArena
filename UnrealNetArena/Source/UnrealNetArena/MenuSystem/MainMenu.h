@@ -20,7 +20,7 @@ public:
 
 	void SetServerList(TArray<FString> serverNames);
 
-	inline void SelectServerIndex(uint32 sIndex) { SelectedServerIndex = sIndex; }
+	void SelectServerIndex(uint32 sIndex);
 
 protected:
 	virtual bool Initialize();
@@ -71,4 +71,6 @@ private:
 	void QuitGame();
 
 	TOptional<uint32> SelectedServerIndex;
+
+	void UpdateChildren();
 };

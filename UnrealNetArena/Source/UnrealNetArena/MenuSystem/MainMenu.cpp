@@ -72,6 +72,23 @@ void UMainMenu::SetServerList(TArray<FString> serverNames)
 	}
 }
 
+void UMainMenu::SelectServerIndex(uint32 sIndex) { 
+	SelectedServerIndex = sIndex; 
+	UpdateChildren();
+}
+
+void UMainMenu::UpdateChildren()
+{
+	for (int32 rowAt = 0; rowAt < ServerList->GetChildrenCount(); ++rowAt) {
+		auto row = Cast<UServerRow>(ServerList->GetChildAt(rowAt));
+		// Only continue processing is this was successful
+		if (row) {
+			// If the row index is the same as the selected server index that means THIS row is selected and only this row
+			row->Selected = (SelectedServerIndex.IsSet() && SelectedServerIndex.GetValue() == rowAt);
+		}
+	}
+}
+
 void UMainMenu::ConnectToServer()
 {
 	if (SelectedServerIndex.IsSet() && MenuInterface) {
