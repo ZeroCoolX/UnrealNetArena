@@ -11,6 +11,7 @@
 #include "OnlineSessionSettings.h"
 
 const static FName SESSION_NAME = TEXT("Arena Net Game");
+const static FName SERVER_NAME_KEY = TEXT("ServerName");
 
 UArenaNetGameInstance::UArenaNetGameInstance(const FObjectInitializer &ObjectInitialize)
 {
@@ -74,7 +75,9 @@ void UArenaNetGameInstance::InGameLoadMenu()
 	inGameMenu->SetMenuInterface(this);
 }
 
-void UArenaNetGameInstance::Host() {
+void UArenaNetGameInstance::Host(FString serverName) {
+	DesiredServerName = serverName;
+
 	if (SessionInterface.IsValid()) {
 		auto existingSession = SessionInterface->GetNamedSession(SESSION_NAME);
 		if (existingSession) {
@@ -109,6 +112,7 @@ void UArenaNetGameInstance::CreateSession()
 		sessionSettings.NumPublicConnections = 2;
 		sessionSettings.bShouldAdvertise = true;	// Makes it visible to .FindSessions()
 		sessionSettings.bUsesPresence = true;		// enables this on the server which tells steam to use lobbies instead of dedicated servers
+		sessionSettings.Set(SERVER_NAME_KEY, DesiredServerName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);	// Allows us to send custom data on the settings - advertised via steam and LAN
 		SessionInterface->CreateSession(0, SESSION_NAME, sessionSettings);
 	}
 }
@@ -175,10 +179,17 @@ void UArenaNetGameInstance::OnFindSessionsComplete(bool success)
 
 			// Extract server data
 			FServerData sData;
-			sData.Name = sRes.GetSessionIdStr();
 			sData.MaxPlayerSize = sRes.Session.SessionSettings.NumPublicConnections;
 			sData.CurrentPlayers = sData.MaxPlayerSize - sRes.Session.NumOpenPublicConnections;
 			sData.HostUsername = sRes.Session.OwningUserName;
+
+			FString foundServerName;
+			if (sRes.Session.SessionSettings.Get(SERVER_NAME_KEY, foundServerName)) {
+				sData.Name = foundServerName;
+			}
+			else {
+				sData.Name = "Server Name Unavailable";
+			}
 
 			servers.Add(sData);
 		}
